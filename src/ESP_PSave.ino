@@ -1,5 +1,5 @@
 /*
- *  $Id: ESP_PSave.ino,v 1.12 2017/06/29 08:22:01 gaijin Exp $
+ *  $Id: ESP_PSave.ino,v 1.2 2017/06/29 12:06:38 gaijin Exp $
  *
  * Demonstrate switching the ESP8266 WiFi off and back on again,
  * while leaving all other functions operational.
@@ -27,9 +27,13 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
 #include "user_config.h"
+/* *INDENT-OFF* */
 extern "C" {
-#include "user_interface.h"
-} WiFiClient wifiClient;
+    #include "user_interface.h"
+}
+/* *INDENT-ON* */
+
+WiFiClient wifiClient;
 
 /* NOTE:- All of these values are configured in user_config.h.  */
 const byte ip[] = WIFI_IPADDR;
