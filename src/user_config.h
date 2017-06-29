@@ -1,5 +1,5 @@
 /*
- * $Id: user_config.h,v 1.4 2017/04/10 14:44:00 gaijin Exp $
+ * $Id: user_config.h,v 1.1 2017/06/29 11:48:59 gaijin Exp $
  *
  * Configuration for local set-up (ie:- Access-point ID & PWD).
  */
