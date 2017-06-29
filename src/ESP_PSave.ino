@@ -1,5 +1,5 @@
 /*
- *  $Id: ESP_PSave.ino,v 1.2 2017/06/29 12:06:38 gaijin Exp $
+ *  $Id: ESP_PSave.ino,v 1.3 2017/06/29 13:00:12 gaijin Exp $
  *
  * Demonstrate switching the ESP8266 WiFi off and back on again,
  * while leaving all other functions operational.
@@ -54,7 +54,6 @@ bool WiFi_Off() {
     WiFi.mode(WIFI_OFF);
     WiFi.forceSleepBegin();
     yield();
-    delay(5);
 
     /* 
      * It can take a while for the ESP to disconnect, so we need
