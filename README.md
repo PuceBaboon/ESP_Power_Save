@@ -82,10 +82,10 @@
    the possibility of over-charging and "gassing", due to the long hours
    of strong sunlight we have during a typical Japanese summer.
 
-   The battery provides power to a low volume, impeller type pump in
-   an outdoor sump well for orchard irrigation use.  The pump is used
+   The battery provides power to a low volume, impeller-type pump in an
+   outdoor sump well for orchard irrigation use.  The pump is used only
    intermittently during the summer and autumn and is removed from the
-   well during the winter months.
+   well completely during the winter months.
 
    Obviously, with a wireless-enabled current of around 350ma, the ESP
    would have the capability (if it were transmitting continuously)
