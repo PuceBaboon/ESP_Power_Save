@@ -103,7 +103,8 @@
    optimistic.  Real world conditions always tend to be (a lot!) less
    than ideal, but even so, this project should provide both a workable
    protection method for the battery and a steady stream of loggable
-   status data.  Batteries not included.  Some assembly (but no assembler)
-   required.*
+   status data (not to mention yet another attack vector for my home
+   network).  Batteries not included.  Some assembly (but no assembler)
+   required.  May contain nuts.*
 
 
