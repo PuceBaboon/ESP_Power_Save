@@ -188,7 +188,7 @@ void setup() {
 #endif
 
     /* Get a unique client-ID for this ESP8266. */
-    sprintf(clidbuff, MQTT_CLIENT_ID, ESP.getChipId());
+    sprintf(clidbuff, CLIENT_ID_PFX, ESP.getChipId());
 
 #ifdef DEBUG
     Serial.print(F("   ClientID: "));
