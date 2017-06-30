@@ -175,7 +175,6 @@ void command_info() {
 
 
 void setup() {
-    char clidbuff[STRBUFF_SIZE];
 
     Serial.begin(115200);
 
@@ -187,12 +186,7 @@ void setup() {
     Serial.println(F("\n"));
 #endif
 
-    /* Get a unique client-ID for this ESP8266. */
-    sprintf(clidbuff, CLIENT_ID_PFX, ESP.getChipId());
-
 #ifdef DEBUG
-    Serial.print(F("   ClientID: "));
-    Serial.println(clidbuff);
     Serial.println();
     Serial.print(F("Connecting to "));
     Serial.println(STA_SSID);

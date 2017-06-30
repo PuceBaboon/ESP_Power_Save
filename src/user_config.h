@@ -13,7 +13,6 @@
  */
 #define DEBUG		1		// Verbose output. "#undef" to disable.
 // #undef DEBUG
-#define CLIENT_ID_PFX	"ESP_%08X"	// Prefix for client-ID string.
 
 
 /*
