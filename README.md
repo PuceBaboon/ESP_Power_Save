@@ -66,6 +66,16 @@
    repeated "ping" to your ESP's IP address, so that you can verify that
    the WiFi is actually off or on.
  
+### Caution
+
+   If you try to connect to a non-existent access-point, or one which is
+   out of range, or you use an incorrect password, then the WiFi will
+   *not* turn off.  That seems pretty counter-intuitive to me and I
+   haven't yet worked out why it happens.  At any rate, it's obviously
+   worth doing some testing (I use a hand-held ESP8266 rig running on
+   three AA batteries) to make sure that you have connectivity before
+   deploying this power-save code to your remote units.
+
 
 ## Background
 
