@@ -1,5 +1,5 @@
 /*
- *  $Id: ESP_PSave.ino,v 1.3 2017/06/29 13:00:12 gaijin Exp $
+ *  $Id: ESP_PSave.ino,v 1.5 2017/07/04 01:21:48 gaijin Exp $
  *
  * Demonstrate switching the ESP8266 WiFi off and back on again,
  * while leaving all other functions operational.
@@ -23,9 +23,22 @@
  * The static address version may be very marginally faster to
  * connect though, if that is an issue for your application.
  *
+ * The embedded web server (used for current consumption
+ * testing) is just a slightly cut-down copy of the "FSWebServer"
+ * SPIFFS/WebServer example from the standard ESP8266WebServer
+ * library examples, which is Copyright (c) 2015 Hristo Gochkov.
+ *
+ * Data for the web server is stored in SPIFFS on the ESP and
+ * the SPIFFS is created from the contents of the "data"
+ * directory.  Using PlatformIO this is achieved using:-
+ *
+ *           platformio run -t buildfs
+ *           platformio run -t uploadfs
+ *
  */
 #include <ESP8266WiFi.h>
-#include <ESP8266mDNS.h>
+#include <ESP8266WebServer.h>
+#include <FS.h>
 #include "user_config.h"
 /* *INDENT-OFF* */
 extern "C" {
@@ -34,6 +47,7 @@ extern "C" {
 /* *INDENT-ON* */
 
 WiFiClient wifiClient;
+ESP8266WebServer server(80);
 
 /* NOTE:- All of these values are configured in user_config.h.  */
 const byte ip[] = WIFI_IPADDR;
@@ -44,6 +58,7 @@ const byte dnssrv[] = WIFI_DNSSRV;
 /*  Globals.  */
 int conn_tries = 0;             // WiFi re-connect counter.
 int count_count = 0;            // Count of counts.
+
 
 /*
  * Turn the ESP8266 WiFi off by calling forceSleepBegin() with
@@ -126,6 +141,8 @@ bool Toggle_WiFi() {
 void Stat_WiFi() {
     Serial.println();
     WiFi.printDiag(Serial);
+    Serial.print(F("IP: "));
+    Serial.println(WiFi.localIP());
     Serial.println();
 }
 
@@ -168,14 +185,156 @@ void command_info() {
     Serial.println(F
                    (" c\t-- Count to 100 (show us you're doing something)."));
     Serial.println(F(" h or ?\t-- This help screen."));
-    Serial.println(F(" w\t-- Toggle WiFi on/off."));
     Serial.println(F(" s\t-- Display current WiFi status."));
+    Serial.println(F(" w\t-- Toggle WiFi on/off."));
     Serial.println();
 }
 
 
-void setup() {
+/*
+ * SPIFFS support function to format bytes.
+ */
+String formatBytes(size_t bytes) {
+    if (bytes < 1024) {
+        return String(bytes) + "B";
+    } else if (bytes < (1024 * 1024)) {
+        return String(bytes / 1024.0) + "KB";
+    } else if (bytes < (1024 * 1024 * 1024)) {
+        return String(bytes / 1024.0 / 1024.0) + "MB";
+    } else {
+        return String(bytes / 1024.0 / 1024.0 / 1024.0) + "GB";
+    }
+}
 
+/*
+ * HTTP server content types.
+ */
+String getContentType(String filename) {
+    if (server.hasArg("download"))
+        return "application/octet-stream";
+    else if (filename.endsWith(".htm"))
+        return "text/html";
+    else if (filename.endsWith(".html"))
+        return "text/html";
+    else if (filename.endsWith(".css"))
+        return "text/css";
+    else if (filename.endsWith(".js"))
+        return "application/javascript";
+    else if (filename.endsWith(".png"))
+        return "image/png";
+    else if (filename.endsWith(".gif"))
+        return "image/gif";
+    else if (filename.endsWith(".jpg"))
+        return "image/jpeg";
+    else if (filename.endsWith(".ico"))
+        return "image/x-icon";
+    else if (filename.endsWith(".xml"))
+        return "text/xml";
+    else if (filename.endsWith(".pdf"))
+        return "application/x-pdf";
+    else if (filename.endsWith(".zip"))
+        return "application/x-zip";
+    else if (filename.endsWith(".gz"))
+        return "application/x-gzip";
+    return "text/plain";
+}
+
+bool handleFileRead(String path) {
+    Serial.println("handleFileRead: " + path);
+    if (path.endsWith("/"))
+        path += "AppleB.jpg";   // Default test file.
+    String contentType = getContentType(path);
+    String pathWithGz = path + ".gz";
+    if (SPIFFS.exists(pathWithGz) || SPIFFS.exists(path)) {
+        if (SPIFFS.exists(pathWithGz))
+            path += ".gz";
+        File file = SPIFFS.open(path, "r");
+        size_t sent = server.streamFile(file, contentType);
+        file.close();
+        return true;
+    }
+    return false;
+}
+
+void handleFileList() {
+    if (!server.hasArg("dir")) {
+        server.send(500, "text/plain", "BAD ARGS");
+        return;
+    }
+
+    String path = server.arg("dir");
+    Serial.println("handleFileList: " + path);
+    Dir dir = SPIFFS.openDir(path);
+    path = String();
+    String output = "[";
+    while (dir.next()) {
+        File entry = dir.openFile("r");
+        if (output != "[")
+            output += ',';
+        bool isDir = false;
+        output += "{\"type\":\"";
+        output += (isDir) ? "dir" : "file";
+        output += "\",\"name\":\"";
+        output += String(entry.name()).substring(1);
+        output += "\"}";
+        entry.close();
+    }
+    output += "]";
+    server.send(200, "text/json", output);
+}
+
+
+/*
+ * Initialize the filesystem and the web server.
+ */
+void WebServerInit(void) {
+
+    SPIFFS.begin(); {
+        Dir dir = SPIFFS.openDir("/");
+        while (dir.next()) {
+            String fileName = dir.fileName();
+            size_t fileSize = dir.fileSize();
+            Serial.printf("FS File: %s, size: %s\r\n",
+                          fileName.c_str(), formatBytes(fileSize).c_str());
+        }
+        Serial.printf("\n");
+    }
+
+    if (WiFi.status() != WL_CONNECTED) {
+        Serial.println(F
+                       ("ERROR:  WiFi not connected.  Cannot initialize web server."));
+        return;
+    }
+
+    /*
+     * HTTP Server Callbacks.
+     */
+    // Load from SPIFFS.
+    server.onNotFound([]() {
+                      if (!handleFileRead(server.uri()))
+                      server.send(404, "text/plain", "File Not Found");}
+    );
+
+/* *INDENT-OFF* */
+    //get heap status, analog input value and all GPIO statuses in one json call
+    server.on("/all", HTTP_GET, [](){
+      String json = "{";
+      json += "\"heap\":"+String(ESP.getFreeHeap());
+      json += ", \"analog\":"+String(analogRead(A0));
+      json += ", \"gpio\":"+String((uint32_t)(((GPI | GPO) & 0xFFFF) | ((GP16I & 0x01) << 16)));
+      json += "}";
+      server.send(200, "text/json", json);
+      json = String();
+    });
+/* *INDENT-ON* */
+
+    /* ...and start the server. */
+    server.begin();
+    Serial.println("HTTP server started");
+}
+
+
+void setup() {
     Serial.begin(115200);
 
     delay(200);
@@ -184,9 +343,6 @@ void setup() {
     Serial.print(F("Reset Info: "));
     Serial.println(ESP.getResetInfo());
     Serial.println(F("\n"));
-#endif
-
-#ifdef DEBUG
     Serial.println();
     Serial.print(F("Connecting to "));
     Serial.println(STA_SSID);
@@ -204,7 +360,6 @@ void setup() {
                 IPAddress(netmask), IPAddress(dnssrv));
     WiFi.begin(STA_SSID, STA_PASS, WIFI_CHANNEL, NULL);
     yield();
-
     while ((WiFi.status() != WL_CONNECTED)
            && (conn_tries++ < WIFI_RETRIES)) {
         delay(100);
@@ -219,13 +374,12 @@ void setup() {
         ESP.reset();
     }
 #ifdef DEBUG
-    Serial.println();
-    WiFi.printDiag(Serial);
-    Serial.print(F("IP: "));
-    Serial.println(WiFi.localIP());
+    Stat_WiFi();
 #endif
 
-    Serial.println(F("WiFi On/Off Test\r\n==============="));
+    WebServerInit();
+
+    Serial.println(F("\n\r\n\rWiFi On/Off Test\r\n================"));
     Serial.println(F("Type \"h\" or \"?\" for command info."));
     command_info();
     prompt();
@@ -235,9 +389,16 @@ void setup() {
 void loop() {
     char c;
 
+    /*
+     * Handle any HTTP requests.
+     */
+    server.handleClient();
+
+    /*
+     * Console menu.
+     */
     while (Serial.available()) {
         c = Serial.read();
-
         switch (c) {
 
         case 'c':
