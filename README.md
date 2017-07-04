@@ -70,8 +70,8 @@
 
    As of 4th July 2017, the program also includes a web server and a
    data directory (with a fairly substantial JPEG file) for testing.
-   You can connect to the ESP using "http://<IP ADDRESS>/" (where
-   "<IP ADDRESS>" is the IP address you've assigned to your module,
+   You can connect to the ESP using "http://\<IP ADDRESS\>/" (where
+   "\<IP ADDRESS\>" is the IP address you've assigned to your module,
    obviously) to have the ESP serve the JPEG image (using a web
    browser, or wget, or curl).  The JPEG is approximately 750Kb, so
    it while take quite a while for the ESP to grab it from SPIFFS,
