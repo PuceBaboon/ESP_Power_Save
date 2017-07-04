@@ -73,7 +73,7 @@
    To have the ESP serve the JPEG image, you can connect to the ESP
    (with a web browser, or wget, or curl) using "http://\<IP ADDRESS\>/"
    (where "\<IP ADDRESS\>" is the IP address you've assigned to your
-   module, obviously).  The JPEG is approximately 750Kb, so it will take
+   module, obviously).  The JPEG is approximately 750kB, so it will take
    a while for the ESP to grab it from SPIFFS, chunk it up and spit it
    out, giving enough time to measure the current consumption of the
    ESP while busy and transmitting.
