@@ -70,12 +70,12 @@
 
    As of 4th July 2017, the program also includes a web server and a
    data directory (with a fairly substantial JPEG file) for testing.
-   You can connect to the ESP (with a web browser, or wget, or curl)
-   using "http://\<IP ADDRESS\>/" (where "\<IP ADDRESS\>" is the IP
-   address you've assigned to your module, obviously) to have the ESP
-   serve the JPEG image.  The JPEG is approximately 750Kb, so it will
-   take a while for the ESP to grab it from SPIFFS, chunk it up and spit
-   it out, giving enough time to measure the current consumption of the
+   To have the ESP serve the JPEG image, you can connect to the ESP
+   (with a web browser, or wget, or curl) using "http://\<IP ADDRESS\>/"
+   (where "\<IP ADDRESS\>" is the IP address you've assigned to your
+   module, obviously).  The JPEG is approximately 750Kb, so it will take
+   a while for the ESP to grab it from SPIFFS, chunk it up and spit it
+   out, giving enough time to measure the current consumption of the
    ESP while busy and transmitting.
 
    If the WiFi is turned off when you submit your query, almost all
@@ -87,7 +87,7 @@
 ### Building
 
    The data file for the web server is stored in the "data" directory.
-   This data needs to be loaded into SPIFFS (the SPI Fast File System)
+   This data needs to be loaded into SPIFFS (the SPI Flash File System)
    on the ESP8266.  This is accomplished under PlatformIO using these
    two commands:-
 
